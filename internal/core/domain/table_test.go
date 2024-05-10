@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -12,8 +11,12 @@ func TestTable_StartSession_SetsIsBusyAndLastStart(t *testing.T) {
 
 	table.StartSession(startTime)
 
-	assert.True(t, table.isBusy)
-	assert.Equal(t, startTime, table.lastStart)
+	if !table.isBusy {
+		t.Errorf("Expected table to be busy")
+	}
+	if table.lastStart != startTime {
+		t.Errorf("Expected last start time to be %v, got %v", startTime, table.lastStart)
+	}
 }
 
 func TestTable_EndSession_SetsIsNotBusyAndUpdatesBusyDurationAndRevenue(t *testing.T) {
@@ -26,9 +29,15 @@ func TestTable_EndSession_SetsIsNotBusyAndUpdatesBusyDurationAndRevenue(t *testi
 
 	table.EndSession(endTime, costPerHour)
 
-	assert.False(t, table.isBusy)
-	assert.Equal(t, 2*time.Hour, table.busyDuration)
-	assert.Equal(t, 200, table.revenue)
+	if table.isBusy {
+		t.Errorf("Expected table not to be busy")
+	}
+	if table.busyDuration != 2*time.Hour {
+		t.Errorf("Expected busy duration to be 2 hours, got %v", table.busyDuration)
+	}
+	if table.revenue != 200 {
+		t.Errorf("Expected revenue to be 200, got %v", table.revenue)
+	}
 }
 
 func TestTable_EndSession_WhenTableIsNotBusy_DoesNotChangeState(t *testing.T) {
@@ -38,9 +47,15 @@ func TestTable_EndSession_WhenTableIsNotBusy_DoesNotChangeState(t *testing.T) {
 
 	table.EndSession(endTime, costPerHour)
 
-	assert.False(t, table.isBusy)
-	assert.Equal(t, 0*time.Second, table.busyDuration)
-	assert.Equal(t, 0, table.revenue)
+	if table.isBusy {
+		t.Errorf("Expected table not to be busy")
+	}
+	if table.busyDuration != 0*time.Second {
+		t.Errorf("Expected busy duration to be 0 seconds, got %v", table.busyDuration)
+	}
+	if table.revenue != 0 {
+		t.Errorf("Expected revenue to be 0, got %v", table.revenue)
+	}
 }
 
 func TestTable_EndSession_WhenSessionIsLessThanOneHour_ChargesForOneHour(t *testing.T) {
@@ -53,9 +68,15 @@ func TestTable_EndSession_WhenSessionIsLessThanOneHour_ChargesForOneHour(t *test
 
 	table.EndSession(endTime, costPerHour)
 
-	assert.False(t, table.isBusy)
-	assert.Equal(t, 30*time.Minute, table.busyDuration)
-	assert.Equal(t, 100, table.revenue)
+	if table.isBusy {
+		t.Errorf("Expected table not to be busy")
+	}
+	if table.busyDuration != 30*time.Minute {
+		t.Errorf("Expected busy duration to be 30 minutes, got %v", table.busyDuration)
+	}
+	if table.revenue != 100 {
+		t.Errorf("Expected revenue to be 100, got %v", table.revenue)
+	}
 }
 
 func TestTable_EndSession_WhenSessionIsMoreThanOneHour_ChargesForActualHours(t *testing.T) {
@@ -68,7 +89,13 @@ func TestTable_EndSession_WhenSessionIsMoreThanOneHour_ChargesForActualHours(t *
 
 	table.EndSession(endTime, costPerHour)
 
-	assert.False(t, table.isBusy)
-	assert.Equal(t, 90*time.Minute, table.busyDuration)
-	assert.Equal(t, 200, table.revenue)
+	if table.isBusy {
+		t.Errorf("Expected table not to be busy")
+	}
+	if table.busyDuration != 90*time.Minute {
+		t.Errorf("Expected busy duration to be 90 minutes, got %v", table.busyDuration)
+	}
+	if table.revenue != 200 {
+		t.Errorf("Expected revenue to be 200, got %v", table.revenue)
+	}
 }
